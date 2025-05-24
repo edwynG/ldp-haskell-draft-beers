@@ -47,3 +47,57 @@ Para lograr compilar el poryecto, haremos uso de un archivo **makefile** el cual
 
 > [!Note]
 > **make** es la herramienta que se utiliza para ejecutar archivos **makefile**. En windows este viene junto con la instalación de **C/C++**. Y si estas en linux este viene junto con el entorno **Unix**. Otra cosa, el makefile tiene implementada una regla **execute** para facilitar la ejecución programa (Revisar el makefile para ver mas reglas o comentarios).
+
+# Documentación
+El objetivo es diseñar con programación funcional un programa  que permita determinar cuántos litros de cerveza deben agregarse entre los barriles para servir exactamente $n$ vasos de cerveza desde cualquiera de las salidas.
+
+### 3 - Añadir cervesa
+```{haskell}
+    addBeer :: Int -> Barrel -> (Barrel, Int)
+    addBeer n (cap, curr)
+        | n <= 0 = ((cap, curr), 0)
+        | otherwise = let newCurr = min (curr + n) cap
+                  in ((cap, newCurr), n - (newCurr - curr))
+
+```
+Esta rutina `addBeer` realiza la funcion de añadir cervesa a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
+
+### 4 - Mejor solución
+```{haskell}
+    fromAToC :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
+    fromAToC (a, b, c) n contador
+        | iSolution (a, b, c) n = (contador, (a, b, c))
+        | otherwise =
+            let (nuevoA, desbordeA) = addBeer 1 a
+                (nuevoB, desbordeB) = addBeer desbordeA b
+                (nuevoC, _)         = addBeer desbordeB c
+            in fromAToC (nuevoA, nuevoB, nuevoC) n (contador + 1)
+
+    fromCToA :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
+    fromCToA (a, b, c) n contador
+        | iSolution (a, b, c) n = (contador, (a, b, c))
+        | otherwise =
+            let (nuevoC, desbordeC) = addBeer 1 c
+                (nuevoB, desbordeB) = addBeer desbordeC b
+                (nuevoA, _)         = addBeer desbordeB a
+            in fromCToA (nuevoA, nuevoB, nuevoC) n (contador + 1)
+
+    findBestSolution :: Int -> (Barrel, Barrel, Barrel) -> (Int, (Barrel, Barrel, Barrel))
+    findBestSolution n (a, b, c)
+        | n <= 0 || not (isSatisfied a b c n) = (0, (a, b, c))
+        | otherwise =
+            let -- Camino agregando a 'a'
+                (addedFromA, stateA) = fromAToC (a, b, c) n 0
+
+                -- Camino agregando a 'c'
+                (addedFromC, stateC) = fromCToA (a, b, c) n 0
+
+                -- Lista de soluciones válidas
+                solutions = [(addedFromA, stateA), (addedFromC, stateC)]
+            in 
+                minimum solutions -- Elige la de menor cantidad agregada
+
+```
+Esta rutina `findBestSolution` realiza la función de encontrar la cantidad de cerveza óptima que debe agregarse en los barriles, con el fin de alcanzar una cantidad específica de vasos de cerveza en uno de los tres barriles.
+
+Esta verifica primero si la cantidad de vasos a llenar es valida y si hay algun barril que pueda llenar los $N$ vasos solicitados utilizando `isSatisfied`. Si se cumple lo anterior, entonces porcede con la busqueda. Este llama a dos funciones `fromAtoC` y `fromCtoA`, estas realizan el procesos de llenar los barriles de un $1L$ en $1L$ recursivamente, hasta lograr encontrar un barrill que pueda satisfacer los $N$ vasos. un caso para llenar desde el barril $A$ al $C$ y vicersa. Estas funciones internamente se apoyan de las funciones `iSolution` para la condición de parada y `addBeer` para agregar los litros. Al encontrar las posibles soluciones, tomamos el caso con menor ceversa agregada posible utilizando `minimum`, La expresión `minimum xs` funciona porque Haskell compara las tuplas por su primer elemento (en este caso, `addedFromA` o `addedFromC`), ya que la lista soluciones es de la forma `[(addedFromA, stateA)]`.
