@@ -14,11 +14,9 @@ findBestSolution n (a, b, c)
             (addedFromC, stateC) = fromCToA (a, b, c) n 0
 
             -- Lista de soluciones válidas
-            soluciones = filter (\(ag, est) -> iSolution est n)
-                          [(addedFromA, stateA), (addedFromC, stateC)]
-        in case soluciones of
-            [] -> (0, (a, b, c))
-            xs -> minimum xs -- Elige la de menor cantidad agregada
+            solutions = [(addedFromA, stateA), (addedFromC, stateC)]
+        in 
+            minimum solutions -- Elige la de menor cantidad agregada
 
 main :: IO ()
 main = do

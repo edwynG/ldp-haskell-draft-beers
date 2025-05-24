@@ -47,4 +47,3 @@ Para lograr compilar el poryecto, haremos uso de un archivo **makefile** el cual
 
 > [!Note]
 > **make** es la herramienta que se utiliza para ejecutar archivos **makefile**. En windows este viene junto con la instalación de **C/C++**. Y si estas en linux este viene junto con el entorno **Unix**. Otra cosa, el makefile tiene implementada una regla **execute** para facilitar la ejecución programa (Revisar el makefile para ver mas reglas o comentarios).
-
