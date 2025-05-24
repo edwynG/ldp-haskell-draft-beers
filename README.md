@@ -51,7 +51,42 @@ Para lograr compilar el poryecto, haremos uso de un archivo **makefile** el cual
 # Documentación
 El objetivo es diseñar con programación funcional un programa  que permita determinar cuántos litros de cerveza deben agregarse entre los barriles para servir exactamente $n$ vasos de cerveza desde cualquiera de las salidas.
 
-### 3 - Añadir cervesa
+### 1 - Inicialización de barriles
+```{haskell}
+validateBarrel :: Barrel -> Bool
+validateBarrel (cap, curr) = cap > 0 && curr >= 0 && curr <= cap
+
+initialBarrels :: Barrel -> Barrel -> Barrel -> (Barrel, Barrel, Barrel)
+initialBarrels a b c = (validate a, validate b, validate c)
+  where
+    validate (cap, curr)
+      | validateBarrel (cap, curr) = (cap, curr)
+      | cap < 0                    = (0,0)
+      | curr > cap                 = (cap, cap)
+      | curr < 0                   = (cap,0)                
+      | otherwise                  = (cap, 0)
+
+```
+La funcion `validateBarrels` verifica si un barril, representado como una tupla (cap, curr) de capacidad y contenido actual, cumple con las restricciones necesarias para ser considerado válido, que la capacidad sea mayor a 0, que la cantidad actual sea mayor igual a cero, y que esta misma sea menor igual a la capacidad del barril.
+
+`initialBarrels` crea una terna de barriles validados, asegurando que cada barril cumpla con las restricciones definidas por `validateBarrel`. Los barriles inválidos se ajustan para garantizar valores válidos de capacidad y contenido, preservando las cantidades válidas cuando sea posible.
+
+### 2 - Existe solución
+```{haskell}
+iSolution :: (Barrel, Barrel, Barrel) -> Int -> Bool
+iSolution (barrelA, barrelB, barrelC) n
+    | n < 0     = False
+    | not (validateBarrel barrelA) || not (validateBarrel barrelB) || not (validateBarrel barrelC) = False
+    | otherwise = 
+        let (capA, currA) = barrelA
+            (capB, currB) = barrelB
+            (capC, currC) = barrelC
+        in (capA >= n && currA >= n) || (capB >= n && currB >= n) || (capC >= n && currC >= n)
+
+```
+`iSolution` determina si es posible obtener una cantidad exacta de cerveza n en al menos uno de los tres barriles proporcionados, considerando sus capacidades y contenidos actuales. La función verifica que los barriles sean válidos y que al menos uno de ellos tenga la capacidad y el contenido suficientes para contener la cantidad n.
+
+### 3 - Añadir cerveza
 ```{haskell}
     addBeer :: Int -> Barrel -> (Barrel, Int)
     addBeer n (cap, curr)
@@ -60,7 +95,7 @@ El objetivo es diseñar con programación funcional un programa  que permita det
                   in ((cap, newCurr), n - (newCurr - curr))
 
 ```
-Esta rutina `addBeer` realiza la funcion de añadir cervesa a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
+Esta rutina `addBeer` realiza la funcion de añadir cerveza a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
 
 ### 4 - Mejor solución
 ```{haskell}
