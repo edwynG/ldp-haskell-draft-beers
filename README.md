@@ -95,7 +95,7 @@ iSolution (barrelA, barrelB, barrelC) n
                   in ((cap, newCurr), n - (newCurr - curr))
 
 ```
-Esta rutina `addBeer` realiza la funcion de añadir cerveza a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
+la función `addBeer` añade cerveza a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
 
 ### 4 - Mejor solución
 ```{haskell}
@@ -133,6 +133,4 @@ Esta rutina `addBeer` realiza la funcion de añadir cerveza a un barril, primero
                 minimum solutions -- Elige la de menor cantidad agregada
 
 ```
-Esta rutina `findBestSolution` realiza la función de encontrar la cantidad de cerveza óptima que debe agregarse en los barriles, con el fin de alcanzar una cantidad específica de vasos de cerveza en uno de los tres barriles.
-
-Esta verifica primero si la cantidad de vasos a llenar es valida y si hay algun barril que pueda llenar los $N$ vasos solicitados utilizando `isSatisfied`. Si se cumple lo anterior, entonces porcede con la busqueda. Este llama a dos funciones `fromAtoC` y `fromCtoA`, estas realizan el procesos de llenar los barriles de un $1L$ en $1L$ recursivamente, hasta lograr encontrar un barrill que pueda satisfacer los $N$ vasos. un caso para llenar desde el barril $A$ al $C$ y vicersa. Estas funciones internamente se apoyan de las funciones `iSolution` para la condición de parada y `addBeer` para agregar los litros. Al encontrar las posibles soluciones, tomamos el caso con menor ceversa agregada posible utilizando `minimum`, La expresión `minimum xs` funciona porque Haskell compara las tuplas por su primer elemento (en este caso, `addedFromA` o `addedFromC`), ya que la lista soluciones es de la forma `[(addedFromA, stateA)]`.
+la función `findBestSolution` encuentra la cantidad de cerveza óptima que debe agregarse en los barriles, con el fin de alcanzar una cantidad específica de vasos de cerveza en uno de los tres barriles. Esta verifica primero si la cantidad de vasos a llenar es valida y si hay algun barril que pueda llenar los $N$ vasos solicitados utilizando `isSatisfied`. Si se cumple lo anterior, entonces porcede con la busqueda. Este llama a dos funciones `fromAtoC` y `fromCtoA`, estas realizan el procesos de llenar los barriles de un $1L$ en $1L$ recursivamente, hasta lograr encontrar un barrill que pueda satisfacer los $N$ vasos. Un caso para llenar desde el barril $A$ al $C$ y viceversa. Estas funciones internamente se apoyan de las funciones `iSolution` para la condición de parada y `addBeer` para agregar los litros. Al encontrar la posibles soluciones, tomamos el caso con menor ceversa agregada posible utilizando `minimum`, La expresión `minimum xs` funciona porque Haskell compara las tuplas por su primer elemento (en este caso, `addedFromA` o `addedFromC`), ya que la lista soluciones es de la forma `[(addedFromA, stateA)]`.
