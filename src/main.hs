@@ -41,7 +41,7 @@ overflowFromB (a, b, c) overflowB
 -- | Determinar la cantidad de cerveza óptima que debe agregarse en los barriles para poder llenar n vasos desde un barril
 findBestSolution :: Int -> (Barrel, Barrel, Barrel) -> (Int, (Barrel, Barrel, Barrel))
 findBestSolution n (a, b, c)
-    | n <= 0 || not (isSatisfied a b c n) = (0, (a, b, c))
+    | n < 0 || not (isSatisfied a b c n) = (0, (a, b, c))
     | otherwise =
         let 
             (a', b', c') = overflowFromA (a, b, c)
