@@ -22,14 +22,11 @@ initialBarrels a b c = (validate a, validate b, validate c)
 
 -- | Verificamos si es posible servir exactamente n vasos de cerveza desde un barril
 iSolution :: (Barrel, Barrel, Barrel) -> Int -> Bool
-iSolution (barrelA, barrelB, barrelC) n
-    | n < 0     = False
-    | not (validateBarrel barrelA) || not (validateBarrel barrelB) || not (validateBarrel barrelC) = False
-    | otherwise = 
-        let (capA, currA) = barrelA
-            (capB, currB) = barrelB
-            (capC, currC) = barrelC
-        in (capA >= n && currA >= n) || (capB >= n && currB >= n) || (capC >= n && currC >= n)
+iSolution (a, b, c) n
+  | n < 0 = False
+  | otherwise = checkBarrel a || checkBarrel b || checkBarrel c
+  where
+    checkBarrel (cap, curr) = validateBarrel (cap, curr) && curr >= n
 
 -- | agregamos cerveza a un barril, luego retornamos el barril y el desbordamiento que hubo
 addBeer :: Int -> Barrel -> (Barrel, Int)
