@@ -74,17 +74,13 @@ La funcion `validateBarrels` verifica si un barril, representado como una tupla 
 ### 2 - Existe solución
 ```{haskell}
 iSolution :: (Barrel, Barrel, Barrel) -> Int -> Bool
-iSolution (barrelA, barrelB, barrelC) n
-    | n < 0     = False
-    | not (validateBarrel barrelA) || not (validateBarrel barrelB) || not (validateBarrel barrelC) = False
-    | otherwise = 
-        let (capA, currA) = barrelA
-            (capB, currB) = barrelB
-            (capC, currC) = barrelC
-        in (capA >= n && currA >= n) || (capB >= n && currB >= n) || (capC >= n && currC >= n)
-
+iSolution (a, b, c) n
+  | n < 0 = False
+  | otherwise = checkBarrel a || checkBarrel b || checkBarrel c
+  where
+    checkBarrel (cap, curr) = validateBarrel (cap, curr) && curr >= n
 ```
-`iSolution` determina si es posible obtener una cantidad exacta de cerveza n en al menos uno de los tres barriles proporcionados, considerando sus capacidades y contenidos actuales. La función verifica que los barriles sean válidos y que al menos uno de ellos tenga la capacidad y el contenido suficientes para contener la cantidad n.
+`iSolution` determina si es posible obtener una cantidad exacta de cerveza n en al menos uno de los tres barriles proporcionados, considerando sus capacidades y contenidos actuales. La función verifica que al menos uno de los barriles sea válido y que tenga la capacidad y el contenido suficientes para contener la cantidad n.
 
 ### 3 - Añadir cerveza
 ```{haskell}
