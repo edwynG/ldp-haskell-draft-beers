@@ -2,4 +2,7 @@
 *.hi
 *.exe
 *.pdf
+bin
+iface
+obj
 !docs/*.pdf

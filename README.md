@@ -49,7 +49,9 @@ Para lograr compilar el poryecto, haremos uso de un archivo **makefile** el cual
 > **make** es la herramienta que se utiliza para ejecutar archivos **makefile**. En windows este viene junto con la instalación de **C/C++**. Y si estas en linux este viene junto con el entorno **Unix**. Otra cosa, el makefile tiene implementada una regla **execute** para facilitar la ejecución programa (Revisar el makefile para ver mas reglas o comentarios).
 
 # Documentación
-El objetivo es diseñar con programación funcional un programa  que permita determinar cuántos litros de cerveza deben agregarse entre los barriles para servir exactamente $n$ vasos de cerveza desde cualquiera de las salidas.
+En este proyecto se aborda el problema de la distribución óptima de cerveza entre tres barriles interconectados, cada uno con capacidades y cantidades iniciales distintas. El sistema permite que la cerveza fluya entre los barriles a través de desbordes, siguiendo reglas específicas de transferencia y pérdida de líquido cuando los barriles alcanzan su capacidad máxima. El objetivo es diseñar, utilizando programación funcional en Haskell, un programa capaz de determinar cuántos litros de cerveza deben agregarse a los barriles para servir exactamente $n$ vasos de cerveza desde cualquiera de las salidas disponibles.
+
+El programa simula el proceso de llenado y desborde de los barriles, considerando tanto las restricciones físicas de capacidad como la dinámica de los desbordes entre los barriles. Para lograrlo, se implementan funciones que validan el estado de los barriles, agregan cerveza controlando el desbordamiento, y buscan la estrategia más eficiente para alcanzar la cantidad deseada de vasos servidos. La solución óptima se determina evaluando diferentes caminos de llenado y seleccionando aquel que minimiza la cantidad de cerveza agregada, garantizando así un uso eficiente de los recursos y un comportamiento realista del sistema.
 
 ### 1 - Inicialización de barriles
 ```{haskell}
