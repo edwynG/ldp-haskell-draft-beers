@@ -84,49 +84,100 @@ iSolution (a, b, c) n
 
 ### 3 - Añadir cerveza
 ```{haskell}
-    addBeer :: Int -> Barrel -> (Barrel, Int)
-    addBeer n (cap, curr)
-        | n <= 0 = ((cap, curr), 0)
-        | otherwise = let newCurr = min (curr + n) cap
-                  in ((cap, newCurr), n - (newCurr - curr))
+addBeer :: Int -> Barrel -> (Barrel, Int)
+addBeer n (cap, curr)
+    | n <= 0 = ((cap, curr), 0)
+    | otherwise = let newCurr = min (curr + n) cap
+                in ((cap, newCurr), n - (newCurr - curr))
 
 ```
-la función `addBeer` añade cerveza a un barril, primero valida que la cantidad a añadir sea valida, luego calcular el total añadido, el desbordamiento y retorna una tupla con el barril actualizado y un entero que representa el desbordamiento.
+La función `addBeer` es fundamental para simular el proceso de agregar cerveza a un barril dentro del sistema. Su funcionamiento inicia validando que la cantidad de cerveza a añadir sea positiva; si la cantidad es cero o negativa, simplemente retorna el barril sin cambios y un desbordamiento de cero. En caso contrario, la función calcula el nuevo contenido del barril sumando la cantidad actual con la cantidad a agregar, pero asegurándose de que no se exceda la capacidad máxima del barril. Para esto, utiliza la función `min` para limitar el contenido al valor de la capacidad.
+
+Posteriormente, `addBeer` determina si hubo desbordamiento. El desbordamiento se calcula como la diferencia entre la cantidad que se intentó agregar y la cantidad que efectivamente pudo ser almacenada en el barril. Finalmente, la función retorna una tupla: el primer elemento es el barril actualizado (con su nueva cantidad de cerveza, que nunca excede la capacidad), y el segundo elemento es la cantidad de cerveza que no pudo ser almacenada y, por tanto, representa el desbordamiento. Esta lógica permite modelar de manera precisa el comportamiento físico de los barriles y es clave para el manejo correcto de los flujos de cerveza entre los diferentes recipientes en el sistema.
 
 ### 4 - Mejor solución
 ```{haskell}
-    fromAToC :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
-    fromAToC (a, b, c) n contador
-        | iSolution (a, b, c) n = (contador, (a, b, c))
-        | otherwise =
-            let (nuevoA, desbordeA) = addBeer 1 a
-                (nuevoB, desbordeB) = addBeer desbordeA b
-                (nuevoC, _)         = addBeer desbordeB c
-            in fromAToC (nuevoA, nuevoB, nuevoC) n (contador + 1)
+fromAToC :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
+fromAToC (a, b, c) n contador
+    | iSolution (a, b, c) n = (contador, (a, b, c))
+    | otherwise =
+        let (nuevoA, desbordeA) = addBeer 1 a
+            (nuevoB, desbordeB) = addBeer desbordeA b
+            (nuevoC, _)         = addBeer desbordeB c
+        in fromAToC (nuevoA, nuevoB, nuevoC) n (contador + 1)
 
-    fromCToA :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
-    fromCToA (a, b, c) n contador
-        | iSolution (a, b, c) n = (contador, (a, b, c))
-        | otherwise =
-            let (nuevoC, desbordeC) = addBeer 1 c
-                (nuevoB, desbordeB) = addBeer desbordeC b
-                (nuevoA, _)         = addBeer desbordeB a
-            in fromCToA (nuevoA, nuevoB, nuevoC) n (contador + 1)
+fromCToA :: (Barrel, Barrel, Barrel) -> Int -> Int -> (Int, (Barrel, Barrel, Barrel))
+fromCToA (a, b, c) n contador
+    | iSolution (a, b, c) n = (contador, (a, b, c))
+    | otherwise =
+        let (nuevoC, desbordeC) = addBeer 1 c
+            (nuevoB, desbordeB) = addBeer desbordeC b
+            (nuevoA, _)         = addBeer desbordeB a
+        in fromCToA (nuevoA, nuevoB, nuevoC) n (contador + 1)
 
-    findBestSolution :: Int -> (Barrel, Barrel, Barrel) -> (Int, (Barrel, Barrel, Barrel))
-    findBestSolution n (a, b, c)
-        | n <= 0 || not (isSatisfied a b c n) = (0, (a, b, c))
-        | otherwise =
-            let -- Camino agregando a 'a'
-                (addedFromA, stateA) = fromAToC (a, b, c) n 0
+-- Desborda desde A hacia B, luego el desborde de B se reparte
+overflowFromA :: (Barrel, Barrel, Barrel) -> (Barrel, Barrel, Barrel)
+overflowFromA (a, b, c) =
+    let (a', overflowA) = if snd a > fst a then ( (fst a, fst a), snd a - fst a ) else (a, 0)
+        (b', overflowB) = if snd b + overflowA > fst b
+                        then ( (fst b, fst b), snd b + overflowA - fst b )
+                        else ( (fst b, snd b + overflowA), 0 )
+    in overflowFromB (a', b', c) overflowB
 
-                -- Camino agregando a 'c'
-                (addedFromC, stateC) = fromCToA (a, b, c) n 0
+-- El desborde de B va al barril vecino con menor cantidad actual
+overflowFromC :: (Barrel, Barrel, Barrel) -> (Barrel, Barrel, Barrel)
+overflowFromC (a, b, c) =
+    let (c', overflowC) = if snd c > fst c then ( (fst c, fst c), snd c - fst c ) else (c, 0)
+        (b', overflowB) = if snd b + overflowC > fst b
+                        then ( (fst b, fst b), snd b + overflowC - fst b )
+                        else ( (fst b, snd b + overflowC), 0 )
+    in overflowFromB (a, b', c') overflowB
 
-                -- Lista de soluciones válidas
-                solutions = [(addedFromA, stateA), (addedFromC, stateC)]
-            in 
-                minimum solutions -- Elige la de menor cantidad agregada
+-- El desborde de B va al barril vecino con menor cantidad actual
+overflowFromB :: (Barrel, Barrel, Barrel) -> Int -> (Barrel, Barrel, Barrel)
+overflowFromB (a, b, c) overflowB
+    | overflowB <= 0 = (a, b, c)
+    | snd a <= snd c && snd a < fst a =
+        let spaceA = fst a - snd a
+            transferA = min overflowB spaceA
+            a' = (fst a, snd a + transferA)
+            lost = overflowB - transferA
+        in (a', b, c) -- Si quieres llevar la cuenta de lo perdido, puedes devolverlo también
+    | snd c < fst c =
+        let spaceC = fst c - snd c
+            transferC = min overflowB spaceC
+            c' = (fst c, snd c + transferC)
+            lost = overflowB - transferC
+        in (a, b, c')
+    | otherwise = (a, b, c) -- Todo el desborde se pierde
+
+-- | Determinar la cantidad de cerveza óptima que debe agregarse en los barriles para poder llenar n vasos desde un barril
+findBestSolution :: Int -> (Barrel, Barrel, Barrel) -> (Int, (Barrel, Barrel, Barrel))
+findBestSolution n (a, b, c)
+    | n < 0 || not (isSatisfied a b c n) = (0, (a, b, c))
+    | otherwise =
+        let 
+            (a', b', c') = overflowFromA (a, b, c)
+            (a'', b'', c'') = overflowFromC (a', b', c')
+
+            -- Camino agregando a 'a'
+            (addedFromA, stateA) = fromAToC (a'', b'', c'') n 0
+
+            -- Camino agregando a 'c'
+            (addedFromC, stateC) = fromCToA (a'', b'', c'') n 0
+
+            -- Lista de soluciones válidas
+            solutions = [(addedFromA, stateA), (addedFromC, stateC)]
+        in 
+            minimum solutions -- Elige la de menor cantidad agregada
 
 ```
-la función `findBestSolution` encuentra la cantidad de cerveza óptima que debe agregarse en los barriles, con el fin de alcanzar una cantidad específica de vasos de cerveza en uno de los tres barriles. Esta verifica primero si la cantidad de vasos a llenar es valida y si hay algun barril que pueda llenar los $N$ vasos solicitados utilizando `isSatisfied`. Si se cumple lo anterior, entonces porcede con la busqueda. Este llama a dos funciones `fromAtoC` y `fromCtoA`, estas realizan el procesos de llenar los barriles de un $1L$ en $1L$ recursivamente, hasta lograr encontrar un barrill que pueda satisfacer los $N$ vasos. Un caso para llenar desde el barril $A$ al $C$ y viceversa. Estas funciones internamente se apoyan de las funciones `iSolution` para la condición de parada y `addBeer` para agregar los litros. Al encontrar la posibles soluciones, tomamos el caso con menor ceversa agregada posible utilizando `minimum`, La expresión `minimum xs` funciona porque Haskell compara las tuplas por su primer elemento (en este caso, `addedFromA` o `addedFromC`), ya que la lista soluciones es de la forma `[(addedFromA, stateA)]`.
+La función `findBestSolution` busca la cantidad mínima de cerveza que debe agregarse a los barriles para poder servir exactamente una cantidad específica de vasos desde alguno de ellos. Primero, valida si la cantidad de vasos solicitada es posible utilizando la función isSatisfied, que comprueba si algún barril puede satisfacer la demanda con su capacidad actual. Si es así, la función procede a explorar las posibles formas de agregar cerveza.
+
+Para encontrar la solución óptima, `findBestSolution` utiliza dos caminos principales: agregar cerveza desde el barril A hacia el C y desde el barril C hacia el A. Estas rutas se implementan mediante las funciones internas `fromAToC` y `fromCToA`, que agregan cerveza de litro en litro al barril de inicio y simulan el proceso de desborde entre barriles.
+
+El manejo de los desbordes se realiza con las funciones `overflowFromA` y `overflowFromC`. Cuando se agrega cerveza a A y este se desborda, `overflowFromA` transfiere el exceso a B, y si B también se desborda, su exceso se reparte al barril vecino con menor cantidad actual (A o C) o se pierde si ambos están llenos. De manera análoga, `overflowFromC` gestiona el desborde cuando se agrega cerveza a C, transfiriendo el exceso a B y aplicando la misma lógica de distribución del desborde.
+
+Durante este proceso, las funciones internas utilizan `addBeer` para simular el agregado de cerveza y el posible desborde, y iSolution para verificar si ya es posible servir la cantidad deseada de vasos. El proceso se repite recursivamente hasta alcanzar una configuración válida.
+
+Finalmente, `findBestSolution` compara las soluciones obtenidas por ambos caminos y selecciona la que requiere la menor cantidad de cerveza agregada usando la función `minimum`. Como las soluciones se representan como tuplas donde el primer elemento es la cantidad de litros agregados, `minimum` garantiza que se elija la estrategia más eficiente. Así, la función asegura siempre retornar la forma óptima de servir la cantidad exacta de vasos solicitados, considerando la dinámica realista de los desbordes entre barriles.
